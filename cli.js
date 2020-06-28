@@ -39,16 +39,20 @@ function mapResponseToPackage(response) {
     npm = { downloads: 0 },
     github = { starsCount: 0, issues: { openCount: 0 } },
   } = response.collected;
+  const {final: rating, detail} = response.score;
 
   const [daily = 0, weekly = 0, monthly = 0] = npm.downloads.map(
     data => data.count,
   );
-
+  console.error(name, JSON.stringify(response, null, 2))
   const package = {
     name,
     description,
     version,
-    rating: formatRating(response.score.final),
+    rating: formatRating(rating),
+    ratingQuality: formatRating(detail.quality),
+    ratingMaintenance: formatRating(detail.maintenance),
+    ratingPopularity: formatRating(detail.popularity),
     modified: distanceInWordsToNow(date),
     author: author.name,
     repository: links.repository,
@@ -83,7 +87,10 @@ function printTable(packages) {
       let highest = undefined;
       let lowest = undefined;
       packages.map(function(package, index) {
-        if (['stars', 'daily', 'weekly', 'monthly', 'rating'].includes(key)) {
+        if (
+          key.startsWith('rating')
+          || ['stars', 'daily', 'weekly', 'monthly'].includes(key)
+        ) {
           if (highest === undefined) {
             highest = 0;
           }
